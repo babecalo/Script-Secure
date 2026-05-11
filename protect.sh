@@ -36,6 +36,28 @@ if [ ! -f "$registrar" ]; then
 				ufw enable
 				ufw verbose
 				
+                echo "By default we'll set a port 22 (ssh)"
+                echo "What rules do you want to setup??"
+
+                while true; do
+
+                    echo -e "Enter 1 for set a rules \nEnter 2 for exit "
+
+                    read condi
+                    if [ "$condi" = "1" ]; then
+
+                        read regla
+                        ufw allow "$regla"
+
+                    elif [ "$condi" = "2" ]; then
+                        ufw enable
+                        ufw verbose
+                        break
+                    else
+                        echo "This option is invalid"
+                    fi
+
+                done
 				clear
 				echo "----------------------------"
 				echo "Setup complete"
@@ -49,8 +71,8 @@ if [ ! -f "$registrar" ]; then
 				ufw default deny incoming
 		   		ufw default allow outgoing
 				ufw allow 22
-                                ufw limit 22/tcp
-                                ufw limit ssh/tcp
+                ufw limit 22/tcp
+                ufw limit ssh/tcp
 
 				echo "By default we'll set a port 22 (ssh)"
 				echo "What rules do you want to setup??"
@@ -63,11 +85,11 @@ if [ ! -f "$registrar" ]; then
 					if [ "$condi" = "1" ]; then
 						
 						read regla
-						
 		   				ufw allow "$regla"
+
 					elif [ "$condi" = "2" ]; then
 						ufw enable
-		    				ufw verbose
+		    			ufw verbose
 						break
 					else
 						echo "This option is invalid"
@@ -93,21 +115,24 @@ if [ ! -f "$registrar" ]; then
 			# esto es para la selecion de reglas
 
 			echo "By default we'll set a port 22 (ssh)"
-                        echo "What rules do you want to setup??"
+            echo "What rules do you want to setup??"
+
+            # estos son los bucles condicionales de las reglas
+
 			while true; do
 				
 				echo -e "Enter 1 for set a rules \nEnter 2 for exit "
 
-                                read condi
-                                if [ "$condi" = "1" ]; then
-	`				
+                read condi
+                if [ "$condi" = "1" ]; then
+				
 					echo "What do you want tcp (1) or udp (2)"
 					read protocolo
 
 					if [ "$protocolo" = "1" ]; then
 						
 						read regla	
-                                        	iptables -A INPUT -p tcp --dport "$regla" -j ACCEPT
+                       	iptables -A INPUT -p tcp --dport "$regla" -j ACCEPT
 					elif [ "$protocolo" = "2" ]; then
 
 						read regla
@@ -116,17 +141,16 @@ if [ ! -f "$registrar" ]; then
 					else
 						echo "This option is invalid"
 					fi
-				done
+				 
 
 
-                                elif [ "$condi" = "2" ]; then
+                elif [ "$condi" = "2" ]; then
                                 	
-					iptables -p INPUT DROP
-
-                                        break
-                                else
-                                	echo "This option is invalid"
-                                fi
+				    iptables -p INPUT DROP
+                    break
+                else
+                   	echo "This option is invalid"
+                fi
 			done
 			clear
 			echo "----------------------------"
@@ -225,8 +249,37 @@ if [ ! -f "$registrar" ]; then
 			firewall-cmd --permanent --zone=public --set-target=DROP
 			firewall-cmd --permanent --zone=trusted --add-interface=lo
 			firewall-cmd --permanent --zone=public --add-service=ssh
-			firewall-cmd --reload
-			clear
+           
+            echo "By default we'll set a port 22 (ssh)"
+            echo "What rules do you want to setup??"
+
+            while true; do
+                
+                echo -e "Enter 1 for set a rules \nEnter 2 for exit "
+                read condi
+
+                if [ "$condi" = "1" ]; then
+                    echo "What do you want tcp (1) or udp (2)"
+                    read protocolo
+                    if [ "$protocolo" = "1" ]; then 
+                        read regla
+                        firewall-cmd --permanent --zone=public --add-port="$regla"/tcp
+                    elif [ "$protocolo" = "2" ]; then
+                        read regla
+                        firewall-cmd --permanent --zone=public --add-port="$regla"/udp
+
+                    else
+                        echo "This option is invalid"
+                    fi
+                elif [ "$condi" = "2" ]; then
+                    echo "goodbye"  
+                    firewall-cmd --reload
+                    break
+                else
+                    echo "This option is invalid"
+                fi
+            done
+            clear
 			
 			echo "Setup complete"
 			echo "Firewalls secure"
@@ -244,7 +297,7 @@ if [ ! -f "$registrar" ]; then
 			
 			echo "Setting up nftables"
 			sytemctl enable --now nftables
-			#nos falta crear las tablas y reglas de todo
+			#nos falta crear las tablas y reglas de todo {hecho todo}
 			echo "Creating tables...\n What is the name of your new tables?"
 			read "tabla"
 			nft add table inet "$tabla"
@@ -255,7 +308,7 @@ if [ ! -f "$registrar" ]; then
 			# en esta parte vamos a hacer las condicionales del while para esto y que el usuario puedoa poner todo lo que quiera 
 			
 			echo "By default we'll set a port 22 (ssh)"
-                        echo "What rules do you want to setup??"
+            echo "What rules do you want to setup??"
 
 			while true; do
 
@@ -265,7 +318,7 @@ if [ ! -f "$registrar" ]; then
 				if [ "$condi" = 1 ]; then 
 
 					echo "What do you want tcp (1) or udp (2)"
-                                        read protocolo
+                    read protocolo
 					if [ "$protocolo" = "1" ]; then
 						
 						read regla
@@ -274,20 +327,20 @@ if [ ! -f "$registrar" ]; then
 						nft list ruleset > /etc/sysconfig/nftables.conf
 					elif [ "$protocolo" = "2" ]; then
 						nft add rules inet "$tabla" entrada udp dport "$regla" accept
-                                                nft list ruleset > /etc/sysconfig/nftables.conf
+                        nft list ruleset > /etc/sysconfig/nftables.conf
 					else
 						echo "This option is invalid"
-					fi
-				done
+                    fi
 				
+                
 				elif [ "$condi" = "2" ]; then
 				        
 					nft list ruleset > /etc/sysconfig/nftables.conf
-			       		break			       
+			       	break			       
 				else
 					echo "This option is invalid"
-				fi
-			done
+                fi
+            done
 
 			# YA terminamos creo nos quedamos por aca para descansar. 
 
@@ -299,7 +352,8 @@ if [ ! -f "$registrar" ]; then
 		else
 			echo "This option is invalid :("
 			exit 1
-		fi
+	    fi
+    
 		echo "----------------------------"
 
 		echo "Securing ROOT access via SSH"
@@ -370,15 +424,16 @@ if [ ! -f "$registrar" ]; then
 			else
 				echo "This option is invalid"   
 			fi
-			done	
+        done
+
 
 
 		exit 0
-	else
+    else
 		echo "This option is invalid >:0"
-		exit 1
-	fi
-	done	
+		exit
+    fi
+    	
 
 	mkdir -p fecha
 	touch fecha/ss.log
@@ -391,7 +446,27 @@ else
 
 	echo "Do you want to chances something??"
 	read -p "Y/n" cocofima
-	if [ "$cocofima" = "y"  ]
+	if [ "$cocofima" = "y" ]; then
+
+        echo "This option will be aveilable soon"
+
+    elif [ "$cocofima" = "Y" ]; then
+        
+       echo "This option will be aveilable soon"
+
+    elif [ "$cocofima" = "n" ]; then
+
+        echo "Goodbye"
+
+    elif [ "$cocofima" = "N" ]; then
+        
+        echo "Goodbye"
+
+    else
+        echo "This option is invalid"
+    fi
+    
+
 fi
 clear
-done
+
